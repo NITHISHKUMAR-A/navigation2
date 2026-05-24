@@ -91,6 +91,8 @@ protected:
   std::string inflation_layer_name_;
 
   unsigned int power_{0};
+
+  double getWeight() const override { return static_cast<double>(weight_); }
 };
 
 }  // namespace mppi::critics

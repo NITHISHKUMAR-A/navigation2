@@ -47,6 +47,8 @@ protected:
   unsigned int power_{0};
   float weight_{0};
   std::vector<float> deadband_velocities_{0.0f, 0.0f, 0.0f};
+
+  double getWeight() const override { return static_cast<double>(weight_); }
 };
 
 }  // namespace mppi::critics

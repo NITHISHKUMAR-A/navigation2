@@ -102,6 +102,18 @@ public:
     return name_;
   }
 
+  /**
+    * @brief Get the primary cost weight of this critic.
+    *        Used by CriticManager to compute cost_normalized = costs_sum / weight,
+    *        which reflects situation severity independent of tuning.
+    *        Override in critics that use a non-standard weight field name.
+    * @return Primary weight value (default 1.0 if critic does not set weight_)
+    */
+  virtual double getWeight() const
+  {
+    return 1.0;
+  }
+
 protected:
   bool enabled_;
   std::string name_, parent_name_;

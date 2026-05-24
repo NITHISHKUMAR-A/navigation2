@@ -96,6 +96,9 @@ protected:
 
   unsigned int power_{0};
   float repulsion_weight_, critical_weight_{0};
+
+  // Returns critical_weight_ as the dominant tuning knob for cost_normalized
+  double getWeight() const override { return static_cast<double>(critical_weight_); }
 };
 
 }  // namespace mppi::critics

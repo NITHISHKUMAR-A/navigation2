@@ -15,12 +15,14 @@
 #ifndef NAV2_MPPI_CONTROLLER__CRITIC_MANAGER_HPP_
 #define NAV2_MPPI_CONTROLLER__CRITIC_MANAGER_HPP_
 
+#include <deque>
 #include <memory>
 #include <string>
 #include <vector>
 #include <pluginlib/class_loader.hpp>
 #include <xtensor/xtensor.hpp>
 
+#include "nav2_msgs/msg/critics_stats.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 
@@ -64,10 +66,11 @@ public:
     std::shared_ptr<nav2_costmap_2d::Costmap2DROS>, ParametersHandler *);
 
   /**
-    * @brief Score trajectories by the set of loaded critic functions
-    * @param CriticData Struct of necessary information to pass to the critic functions
+    * @brief Score trajectories by the set of loaded critic functions.
+    *        Also publishes per-critic cost stats if publish_critics_stats_ is true.
+    * @param data Struct of necessary information to pass to the critic functions
     */
-  void evalTrajectoriesScores(CriticData & data) const;
+  void evalTrajectoriesScores(CriticData & data);
 
 protected:
   /**
@@ -85,6 +88,17 @@ protected:
     */
   std::string getFullName(const std::string & name);
 
+  /**
+    * @brief Publish enriched per-critic cost statistics on ~/critics_stats topic
+    * @param costs_per_critic     Vector of summed cost deltas, one per critic
+    * @param triggered_per_critic Vector of bools, true if critic added any cost
+    * @param weights_per_critic   Vector of each critic's primary weight (for normalization)
+    */
+  void publishCriticsStats(
+    const std::vector<double> & costs_per_critic,
+    const std::vector<bool> & triggered_per_critic,
+    const std::vector<double> & weights_per_critic);
+
 protected:
   rclcpp_lifecycle::LifecycleNode::WeakPtr parent_;
   std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
@@ -94,6 +108,14 @@ protected:
   std::vector<std::string> critic_names_;
   std::unique_ptr<pluginlib::ClassLoader<critics::CriticFunction>> loader_;
   std::vector<std::unique_ptr<critics::CriticFunction>> critics_;
+
+  // CriticsStats publisher (Jazzy backport)
+  rclcpp::Publisher<nav2_msgs::msg::CriticsStats>::SharedPtr critics_stats_pub_;
+  bool publish_critics_stats_{false};
+
+  // Rolling window for trigger_rate computation (one deque per critic)
+  static constexpr size_t kTriggerWindow{100};
+  std::vector<std::deque<bool>> trigger_history_;
 
   rclcpp::Logger logger_{rclcpp::get_logger("MPPIController")};
 };

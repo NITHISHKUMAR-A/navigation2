@@ -53,6 +53,8 @@ protected:
   bool use_path_orientations_{false};
   unsigned int power_{0};
   float weight_{0};
+
+  double getWeight() const override { return static_cast<double>(weight_); }
 };
 
 }  // namespace mppi::critics

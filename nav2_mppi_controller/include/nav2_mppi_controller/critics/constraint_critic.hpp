@@ -49,6 +49,8 @@ protected:
   float weight_{0};
   float min_vel_;
   float max_vel_;
+
+  double getWeight() const override { return static_cast<double>(weight_); }
 };
 
 }  // namespace mppi::critics
